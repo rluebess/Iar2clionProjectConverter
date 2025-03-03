@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.22)
 # Set the project name, [description] and [version],
 # while enabling its required languages
 project(%project_name% 
-	DESCRIPTION "Electricity meter: R32 case, shunt, RS485, dlms protocol support"
+	DESCRIPTION "Project description"
 	VERSION 1.0.0
 	LANGUAGES C ASM)
 
@@ -11,22 +11,22 @@ project(%project_name%
 set(SOURCES_BASE_PATH "%sources_base%")
 # To export compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-# Add the executable for the "my_test" target,
+# Add the executable for the "my_project" target,
 # specifying its source files
-add_executable(my_test
+add_executable(my_project
 	# Source files
 %source_file%
 	)
 
-# Add the library for the "my_test" target,
+# Add the library for the "my_project" target,
 # specifying its source files
-target_link_libraries(my_test
+target_link_libraries(my_project
 	# Library source files
 %lib_files%
 	)
 
-# Set the properties for the "my_test" target
-set_target_properties(my_test PROPERTIES
+# Set the properties for the "my_project" target
+set_target_properties(my_project PROPERTIES
 	DEVICE        %chip%
 	CPU           %core%
 	FPU           %fpu%
@@ -36,22 +36,22 @@ set_target_properties(my_test PROPERTIES
 
 
 # Применяется лишь для цели "RequestGenerator":
-target_include_directories(my_test PUBLIC
+target_include_directories(my_project PUBLIC
 	$<$<COMPILE_LANGUAGE:C>:
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 %include_dir%
 	>)
 
-# Set a preprocessor symbol, usable from "my_test" target (unused symbols: USE_ASM=1)
-target_compile_definitions(my_test PUBLIC 
+# Set a preprocessor symbol, usable from "my_project" target (unused symbols: USE_ASM=1)
+target_compile_definitions(my_project PUBLIC 
 	__packed=
 	__no_init=
 	__root=
 	__weak=
 %preprocessor_defines%)
 
-# Set the compiler flags for the "my_test" target
-target_compile_options(my_test PRIVATE
+# Set the compiler flags for the "my_project" target
+target_compile_options(my_project PRIVATE
 	--target=armv7e-m-none-eabi
 	-mcpu=cortex-m4
 	-mthumb

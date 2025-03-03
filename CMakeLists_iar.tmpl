@@ -9,6 +9,8 @@ project(%project_name%
 
 # Set base path to sources
 set(SOURCES_BASE_PATH "%sources_base%")
+# To export compile_commands.json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Add the executable for the "my_project" target,
 # specifying its source files
 add_executable(my_project
