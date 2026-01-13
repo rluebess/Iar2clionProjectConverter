@@ -5,6 +5,8 @@
 """
 
 import os
+import json
+import sys
 from lxml import objectify
 
 
@@ -24,8 +26,26 @@ class EWPProject(object):
         self.project['workspace name'] = self.root.configuration.name
         self.project['name'] = os.path.splitext(self.xmlFile)[0]
 
-        self.project['srcs_base'] = os.path.dirname(self.path)
+        # self.project['srcs_base'] = os.path.dirname(self.path)
+        self.project['srcs_base'] = self.path
         self.project['srcs_base'] = self.myNormCase(self.project['srcs_base'])
+
+        # Check for iar-vsc.json
+        vsc_json_path = os.path.join(self.project['srcs_base'],  '.vscode', 'iar-vsc.json')
+        if not os.path.exists(vsc_json_path):
+            print(f"Error: {vsc_json_path} not found. Please import the project into VS Code first.")
+            sys.exit(1)
+
+        try:
+            with open(vsc_json_path, 'r') as f:
+                vsc_data = json.load(f)
+                workbench_path = vsc_data['workbench']['path']
+                self.project['toolkit_dir'] = os.path.join(workbench_path, 'arm')
+        except Exception as e:
+            print(f"Error reading {vsc_json_path}: {e}")
+            sys.exit(1)
+        self.project['toolkit_dir'] = self.myNormCase(self.project['toolkit_dir'])
+
         self.project['srcs'] = []
         self.expandGroups(self.root, self.project['srcs'])
 
@@ -71,6 +91,7 @@ class EWPProject(object):
         """
         print('Project Workspace Name:' + self.project['workspace name'])
         print('Project Name:' + self.project['name'])
+        print('Project toolkit dir:' + self.project['toolkit_dir'])
         print('Project chip:' + self.project['chip'])
         print('Project includes: ' + ' '.join(self.project['incs']))
         print('Project defines: ' + ' '.join(self.project['defs']))
@@ -98,7 +119,9 @@ class EWPProject(object):
 
     def myNormCase(self, s):
         s = s.replace('\\', '/')
-        s = s.replace('$PROJ_DIR$' + '/' + '..', '')
+        s = s.replace('$PROJ_DIR$', '/')
+        if s.startswith('/'):
+            s = s[1:]
         os.path.normcase(s)
         return s
 

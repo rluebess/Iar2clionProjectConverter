@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 
+#using template for IAR compiler
+
 # Set the project name, [description] and [version],
 # while enabling its required languages
 project(%project_name% 
@@ -9,6 +11,10 @@ project(%project_name%
 
 # Set base path to sources
 set(SOURCES_BASE_PATH "%sources_base%")
+
+# Set path to the toolkit-dir
+set(TOOLKIT_DIR "%toolkit_dir%")
+
 # To export compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Add the executable for the "my_project" target,
@@ -21,6 +27,7 @@ add_executable(my_project
 # Add the library for the "my_project" target,
 # specifying its source files
 target_link_libraries(my_project
+    TOOLKIT_DIR
 	# Library source files
 %lib_files%
 	)
@@ -70,7 +77,7 @@ target_compile_options(my_project PRIVATE
 	# asm compiler flags
 	$<$<COMPILE_LANGUAGE:ASM>:
 	-s+
-	-M<$<ANGLE-R>
+	"-M<$<ANGLE-R>"
 	-w+
 	-r
 	--cpu $<TARGET_PROPERTY:CPU>

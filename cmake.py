@@ -42,12 +42,18 @@ class CMake (object):
             core = 'Cortex-M3'
         elif 'STM32L4' in self.project['chip']:
             core = 'Cortex-M4'
+        elif 'STR912F' in self.project['chip'] or 'STR91x' in self.project['chip']:
+            core = 'ARM966E-S'
+            fpu = 'None'
+        else:
+            core = 'unknown'
+            print("Warning: CPU core could not be determined for chip: " + self.project['chip'])
 
         if compiler == "iar":
-            with open('CMakeLists_iar.tmpl', 'r') as file:
+            with open('CMakeLists_iar.tmpl', 'r', encoding='utf-8') as file:
                 file_content = file.read()
         if compiler == "clang":
-            with open('CMakeLists.tmpl', 'r') as file:
+            with open('CMakeLists.tmpl', 'r', encoding='utf-8') as file:
                 file_content = file.read()
 
         # Replace the search string with the replace string
@@ -67,6 +73,12 @@ class CMake (object):
             updated_content, "%diag_error%", self.project['diag_error'])
         updated_content = updated_content.replace(
             "%sources_base%", self.project['srcs_base'])
+        if 'toolkit_dir' in self.project:
+            updated_content = updated_content.replace(
+                "%toolkit_dir%", self.project['toolkit_dir'])
+        else:
+            updated_content = updated_content.replace(
+                "%toolkit_dir%", "UNDEFINED-PLEASE EDIT")
 
         replace_string = ''
         replace_string_lib = ''
@@ -101,7 +113,8 @@ class CMake (object):
             "%linker_symbol%", replace_string)
 
         # Write the updated content back to the file
-        with open('CMakeLists.txt', 'w') as file:
+        output_path = os.path.join(os.path.dirname(self.path), 'CMakeLists.txt')
+        with open(output_path, 'w', encoding='utf-8') as file:
             file.write(updated_content)
 
     def replaceOrDelete(self, content, target_string, replacement):
@@ -187,7 +200,7 @@ class CMake (object):
         cmake['linker_path'] = ''
 
         self.linkerScript('STM32FLASH.ld', os.path.join(
-            self.path, 'STM32FLASH.ld'))
+            os.path.dirname(self.path), 'STM32FLASH.ld'))
 
         cmake['oocd_target'] = 'stm32f3x'
         cmake['defines'] = []
@@ -198,7 +211,7 @@ class CMake (object):
 
         self.context['cmake'] = cmake
 
-        abspath = os.path.abspath(os.path.join(self.path, 'CMakeLists.txt'))
+        abspath = os.path.abspath(os.path.join(os.path.dirname(self.path), 'CMakeLists.txt'))
         self.generateFile('CMakeLists.txt', abspath)
 
         print('Created file CMakeLists.txt [{}]'.format(abspath))
@@ -223,12 +236,12 @@ class CMake (object):
 
         if platform.system() == 'Windows':
 
-            with open(pathDst, 'w') as f:
+            with open(pathDst, 'w', encoding='utf-8') as f:
                 f.write(generated_code)
 
         elif platform.system() == 'Linux':
 
-            with open(pathDst, 'w') as f:
+            with open(pathDst, 'w', encoding='utf-8') as f:
                 f.write(generated_code)
         else:
             # Different OS than Windows or Linux
@@ -252,12 +265,12 @@ class CMake (object):
 
         if platform.system() == 'Windows':
 
-            with open(pathDst, 'w') as f:
+            with open(pathDst, 'w', encoding='utf-8') as f:
                 f.write(generated_code)
 
         elif platform.system() == 'Linux':
 
-            with open(pathDst, 'w') as f:
+            with open(pathDst, 'w', encoding='utf-8') as f:
                 f.write(generated_code)
         else:
             # Different OS than Windows or Linux
