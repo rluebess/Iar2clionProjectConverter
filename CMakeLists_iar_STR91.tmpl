@@ -1,0 +1,131 @@
+cmake_minimum_required(VERSION 3.22)
+
+#using template for IAR compiler
+
+# Set the project name, [description] and [version],
+# while enabling its required languages
+
+
+# Set path to the toolkit-dir
+set(TOOLKIT_DIR "%toolkit_dir%")
+set(CMAKE_ASM_COMPILER "${TOOLKIT_DIR}/bin/iasmarm.exe")
+
+# Flags direkt für den Assembler-Prozess setzen
+# set(CMAKE_ASM_FLAGS "-s+ \"-M<>\" -w+ -r --cpu=%core% --fpu=%fpu% -E10000")
+set(CMAKE_ASM_FLAGS "-s+ \"-M<>\" -w+ --cpu=%core% --fpu=%fpu% -E10000")
+
+project(%project_name% 
+	DESCRIPTION "Project description"
+	VERSION 1.0.0
+	LANGUAGES C ASM)
+
+# Set base path to sources
+set(SOURCES_BASE_PATH "%sources_base%")
+
+
+# To export compile_commands.json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# Add the executable for the "my_project" target,
+# specifying its source files
+add_executable(my_project
+	# Source files
+%source_file%
+	)
+
+# Add the library for the "my_project" target,
+# specifying its source files
+target_link_libraries(my_project
+	# Library source files
+	#TOOLKIT_DIR
+%lib_files%
+	)
+
+# Set the properties for the "my_project" target
+set_target_properties(my_project PROPERTIES
+	DEVICE        %chip%
+	CPU           %core%
+	FPU           %fpu%
+	ARCHITECTURE  ${CMAKE_SYSTEM_PROCESSOR}
+	ENDIAN        little
+	DEVICE_ICF    "${SOURCES_BASE_PATH}%linker_icf%")
+
+
+# Применяется лишь для цели "RequestGenerator":
+target_include_directories(my_project PUBLIC
+	$<$<COMPILE_LANGUAGE:C>:
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+%include_dir%
+	>)
+
+# Set a preprocessor symbol, usable from "my_project" target (unused symbols: USE_ASM=1)
+target_compile_definitions(my_project PUBLIC 
+%preprocessor_defines%)
+
+# Clean default opt level
+string(REPLACE "-Oh" "" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+
+# Set the compiler flags for the "my_project" target
+target_compile_options(my_project PRIVATE
+	$<$<COMPILE_LANGUAGE:C>:
+	
+	$<$<CONFIG:Release>:	>
+    -On         #changed by rolf
+    -D DEBUGRL  #changed by rolf
+	--dlib_config "${TOOLKIT_DIR}%dlib_config%"
+	--debug 
+	--diag_suppress %diag_suppress%
+	--diag_error %diag_error%
+	--endian=$<TARGET_PROPERTY:ENDIAN>
+	-e
+		# Set the list output
+	-l $<TARGET_FILE_DIR:my_project>
+	--cpu=$<TARGET_PROPERTY:CPU>
+	--fpu=$<TARGET_PROPERTY:FPU>
+	--vla >
+
+#	# asm compiler flags
+#	$<$<COMPILE_LANGUAGE:ASM-IAR>:
+#	-s+
+#	"-M<$<ANGLE-R>"
+#	-w+
+#	-r
+#	--cpu=%core% # $<TARGET_PROPERTY:CPU>
+#	--fpu=%fpu% # $<TARGET_PROPERTY:FPU>
+#	-E10000 >
+	 )
+
+# Set the linker options for the "my_project" target
+target_link_options(my_project PRIVATE
+	$<$<CONFIG:Release>:	>
+
+	%linker_symbol%
+	# Create a map file from the target's ELF
+	--map $<TARGET_FILE:my_project>.map
+
+	# Set the linker script
+	--config $<TARGET_PROPERTY:DEVICE_ICF>
+
+	--semihosting 
+	--entry __iar_program_start
+	--vfe
+	)
+
+# Function to convert the ELF output to other format
+# OUTPUT_FORMAT: bin ihex
+function(iar_elf_tool TARGET OUTPUT_FORMAT)
+
+    # Variables to make it readable
+    set(target_output_name $<TARGET_PROPERTY:${TARGET},OUTPUT_NAME>)
+    set(target_name $<TARGET_PROPERTY:${TARGET},NAME>)
+
+    # Check if target_output_name is set, then use it, else use targat_name
+    set(output_name $<IF:$<BOOL:${target_output_name}>,${target_output_name},${target_name}>)
+    add_custom_command(TARGET ${TARGET} POST_BUILD
+        COMMAND ${CMAKE_IAR_ELFTOOL} --silent --${OUTPUT_FORMAT}
+        $<TARGET_FILE:${TARGET}>
+        ${output_name}.${OUTPUT_FORMAT}
+    )
+endfunction()
+
+# Call the function
+iar_elf_tool(my_project bin)
