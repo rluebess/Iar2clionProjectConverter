@@ -38,7 +38,7 @@ The current version requires some manual environment configuration. My long-term
 
 Install `python3` on your system run:
 ```shell
-pip install Jinja2
+pip install -r requirements.txt
 ```
 
 ## Usage
