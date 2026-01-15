@@ -27,9 +27,6 @@ The current version requires some manual environment configuration. My long-term
 
 ---
 
-### The original Author:
-A lot of Embedded Projects use proprietary IDEs and build processes. This make any CI/CD painful. Therefore these simple python scripts allow conversion of existing projects into CMake and corresponding linker file for GCC toolchain. Currently supported are *IAR's ewp* and *ARM's KEIL uvprojx* project formats.
-
 ## Module description
 
 - [cmake.py](cmake.py) - Cmake and linker file generation
@@ -73,12 +70,3 @@ We use [SemVer](semver.org) for versioning.
 ## License
 
 The project is licensed under the [Apache License v2.0](https://www.apache.org/licenses/LICENSE-2.0) - see the [LICENSE.md](LICENSE.md) file for details.
-
-## TODO
-- [ ] Package as python module and publish it
-- [ ] Seperate templates into submodule
-- [ ] Support generation of Makefile
-- [ ] Support additional compilers
-- [ ] Test on MAC OSX 
-- [ ] Arg to specify build directory
-- [ ] Add Tests
