@@ -50,9 +50,13 @@ class CMake (object):
             print("Warning: CPU core could not be determined for chip: " + self.project['chip'])
 
         if compiler == "iar":
-            with open('CMakeLists_iar.tmpl', 'r', encoding='utf-8') as file:
+            if 'STR912' in self.project['chip']:
+                template_file = 'CMakeLists_iar_STR91.tmpl'
+            else:
+                template_file = 'CMakeLists_iar.tmpl'
+            with open(template_file, 'r', encoding='utf-8') as file:
                 file_content = file.read()
-        if compiler == "clang":
+        elif compiler == "clang":
             with open('CMakeLists.tmpl', 'r', encoding='utf-8') as file:
                 file_content = file.read()
 
